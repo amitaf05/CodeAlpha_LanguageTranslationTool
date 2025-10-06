@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Text Translator</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #4f46e5, #9333ea);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      color: #333;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      max-width: 480px;
+      width: 90%;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      color: #111827;
+    }
+    select, textarea, button {
+      width: 100%;
+      margin: 0.5rem 0;
+      padding: 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      transition: 0.2s ease;
+    }
+    select:focus, textarea:focus {
+      border-color: #4f46e5;
+      box-shadow: 0 0 4px #4f46e5;
+    }
+    textarea {
+      min-height: 100px;
+      resize: none;
+    }
+    button {
+      background: #4f46e5;
+      color: white;
+      cursor: pointer;
+      border: none;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #4338ca;
+    }
+    .output {
+      margin-top: 1rem;
+      background: #f3f4f6;
+      border-radius: 8px;
+      padding: 1rem;
+      position: relative;
+    }
+    .actions {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: flex;
+      gap: 0.5rem;
+    }
+    .actions button {
+      background: none;
+      color: #4f46e5;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🌐 Text Translator</h1>
+
+    <div class="lang-select">
+      <select id="sourceLang">
+        <option value="en">English</option>
+        <option value="fr">French</option>
+        <option value="es">Spanish</option>
+        <option value="de">German</option>
+        <option value="it">Italian</option>
+        <option value="ar">Arabic</option>
+        <option value="ko">Korean</option>
+        <option value="ja">Japanese</option>
+      </select>
+
+      <select id="targetLang">
+        <option value="fr">French</option>
+        <option value="en">English</option>
+        <option value="es">Spanish</option>
+        <option value="de">German</option>
+        <option value="it">Italian</option>
+        <option value="ar">Arabic</option>
+        <option value="ko">Korean</option>
+        <option value="ja">Japanese</option>
+      </select>
+    </div>
+
+    <textarea id="textInput" placeholder="Enter text to translate..."></textarea>
+    <button id="translateBtn">Translate</button>
+
+    <div id="output" class="output" style="display: none;">
+      <div class="actions">
+        <button id="copyBtn">📋</button>
+        <button id="speakBtn">🔊</button>
+      </div>
+      <p id="translatedText"></p>
+    </div>
+  </div>
+
+  <script>
+    const translateBtn = document.getElementById('translateBtn');
+    const textInput = document.getElementById('textInput');
+    const sourceLang = document.getElementById('sourceLang');
+    const targetLang = document.getElementById('targetLang');
+    const translatedText = document.getElementById('translatedText');
+    const output = document.getElementById('output');
+    const copyBtn = document.getElementById('copyBtn');
+    const speakBtn = document.getElementById('speakBtn');
+
+    translateBtn.addEventListener('click', async () => {
+      const text = textInput.value.trim();
+      if (!text) return;
+
+      translateBtn.textContent = 'Translating...';
+      try {
+        const response = await fetch(
+          `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sourceLang.value}|${targetLang.value}`
+        );
+        const data = await response.json();
+        translatedText.textContent = data.responseData.translatedText || 'Translation error.';
+        output.style.display = 'block';
+      } catch (error) {
+        translatedText.textContent = 'Error occurred during translation.';
+        output.style.display = 'block';
+      } finally {
+        translateBtn.textContent = 'Translate';
+      }
+    });
+
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(translatedText.textContent);
+      copyBtn.textContent = '✅';
+      setTimeout(() => (copyBtn.textContent = '📋'), 1500);
+    });
+
+    speakBtn.addEventListener('click', () => {
+      const utterance = new SpeechSynthesisUtterance(translatedText.textContent);
+      utterance.lang = targetLang.value;
+      window.speechSynthesis.speak(utterance);
+    });
+  </script>
+</body>
+</html>
